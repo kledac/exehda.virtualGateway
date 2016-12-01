@@ -10,10 +10,14 @@ from dateutil.parser import parse
 
 
 class MTServer(bottle.ServerAdapter):
-
+   
+    zones = 6
+    gateways_per_zone = 1
+    sensors_per_zone = 5
 
     def __init__(self):
         app = bottle.Bottle()
+        
 
         # TRUE limpa todas informações de dados publicacos
         restart_simulation = True
@@ -37,9 +41,15 @@ class MTServer(bottle.ServerAdapter):
 
             return json
 
-        @app.route('/sensor=<name>')
-        def time(name):
-            conn = sqlite3.connect('db.sqlite', detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        @app.route('/sensor/', method='GET')
+        def time():
+
+            sensor_id = request.query["uuId"]
+            if sensor_id =="":
+                return
+            
+            zoneNumber = str(1)
+            conn = sqlite3.connect('dbs/zone'+zoneNumber+'.sqlite', detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
             cursor = conn.cursor()
 
             json = ""
@@ -47,16 +57,16 @@ class MTServer(bottle.ServerAdapter):
             try:
                 # select * from {tn} where publicado = false and {key} = {idf} LIMIT 1
                 cursor.execute("select sensor_id, gateway_id, datacoleta, valorcoletado from {tn} where publicado = 'false' and {key} = {idf} LIMIT 1 ".\
-                        format(tn="publicacoes", key="sensor_id", idf=name))
+                        format(tn="publicacoes", key="sensor_id", idf=sensor_id))
 
                 for registro in cursor.fetchall():
                     data = parse(registro[2])
                     data_final = data + timedelta(minutes=read_time-1)
-                    json = """{"value":"""+" \""+str(registro[3])+"\""+""", "id_sensor":"""+" \""+str(registro[0])+"\""+""", "id_gateway": """+" \""+str(registro[1])+"\""+""", "datacoleta": """+" \""+str(registro[2])+"\""+"""}"""
+                    json = """{"value":"""+" \""+str(registro[3])+"\""+""", "id_sensor":"""+" \""+str(registro[0])+"\""+""", "id_gateway": """+" \""+str(registro[1])+"\""+""", "dataColeta": """+" \""+str(registro[2])+"\""+"""}"""
                     #print("Sensor Id: " + str(registro[0]) +" Data: " + str(registro[2]) + "  Valor:"  + str(registro[3]) )
                 
 
-                cursor.execute("update publicacoes set publicado = 'true' where publicado = 'false' and sensor_id = ? and datacoleta between ? and ?", (name, data , data_final ))
+                cursor.execute("update publicacoes set publicado = 'true' where publicado = 'false' and sensor_id = ? and datacoleta between ? and ?", (sensor_id, data , data_final ))
                 # for registro in cursor.fetchall():
                 #     print(registro[2])
                 # print(data)
@@ -167,9 +177,9 @@ class MTServer(bottle.ServerAdapter):
 
             
 
-        @app.route('/new', method='GET')
+        @app.route('/new/', method='GET')
         def new_item():
-            new = request.GET.task.strip()
+            new = request.query["uuId"]
             print(new)
             print('ENTROU')
 
@@ -198,13 +208,25 @@ class MTServer(bottle.ServerAdapter):
         server.serve_forever()
     
     def reset_simulation(id):
-        conn = sqlite3.connect('db.sqlite', detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        cursor = conn.cursor()
+        for zone in range(1, MTServer.zones+1):
+            conn = sqlite3.connect('dbs/zone'+str(zone)+'.sqlite', detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+            cursor = conn.cursor()
 
-        if id==0:
-            cursor.execute("update publicacoes set publicado = 'false' where publicado = 'true' ")
-        else:
-            cursor.execute("update publicacoes set publicado = 'false' where publicado = 'true' and sensor_id=? ", (id))
-        
-        conn.commit()
-        conn.close()
+            if id==0:
+                cursor.execute("update publicacoes set publicado = 'false' where publicado = 'true' ")
+            else:
+                cursor.execute("update publicacoes set publicado = 'false' where publicado = 'true' and sensor_id=? ", (id))
+            
+            conn.commit()
+            conn.close()
+    def zoneDB(sensor_id):
+        zone = 1
+
+        sensors_in_zone = MTServer.sensors_per_zone * MTServer.gateways_per_zone
+
+
+        # zones = 6
+        # gateways_per_zone = 1
+        # sensors_per_zone = 5
+
+        return zone
