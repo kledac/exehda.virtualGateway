@@ -48,7 +48,7 @@ class MTServer(bottle.ServerAdapter):
             if sensor_id =="":
                 return
             
-            zoneNumber = str(1)
+            zoneNumber = str(MTServer.zoneDB(int(sensor_id)))
             conn = sqlite3.connect('dbs/zone'+zoneNumber+'.sqlite', detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
             cursor = conn.cursor()
 
@@ -180,8 +180,9 @@ class MTServer(bottle.ServerAdapter):
         @app.route('/new/', method='GET')
         def new_item():
             new = request.query["uuId"]
-            print(new)
-            print('ENTROU')
+            MTServer.zoneDB(int(new))
+            return str(MTServer.zoneDB(int(new)))
+           
 
         @app.route('/json<json:re:[0-9]+>', method='GET')
         def show_json(json):
@@ -219,14 +220,19 @@ class MTServer(bottle.ServerAdapter):
             
             conn.commit()
             conn.close()
+
     def zoneDB(sensor_id):
         zone = 1
 
         sensors_in_zone = MTServer.sensors_per_zone * MTServer.gateways_per_zone
 
-
-        # zones = 6
-        # gateways_per_zone = 1
-        # sensors_per_zone = 5
+        if sensor_id <= sensors_in_zone:
+            zone=1
+        else:
+            divided = (int)(sensor_id / sensors_in_zone)  + 1
+            rest = sensor_id % sensors_in_zone
+            if rest == 0:
+                divided = divided - 1
+            zone = divided
 
         return zone
