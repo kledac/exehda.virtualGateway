@@ -6,12 +6,12 @@ python3 main.py
 Dbs localizadas na pasta DBS. 
 Configuração inicial:
 6 zonas de manejo
-1 gateway por zona de manejo
+6 gateway por zona de manejo
 5 sensores por gateway
 ZN 1
-ids: 1-5
+ids: 1-30
 ZN 2
-ids: 6-11
+ids: 31-60
 
 e assim por diante.
 

@@ -12,7 +12,7 @@ from dateutil.parser import parse
 class MTServer(bottle.ServerAdapter):
    
     zones = 6
-    gateways_per_zone = 1
+    gateways_per_zone = 6
     sensors_per_zone = 5
 
     def __init__(self):
@@ -222,6 +222,9 @@ class MTServer(bottle.ServerAdapter):
             conn.close()
 
     def zoneDB(sensor_id):
+
+        
+
         zone = 1
 
         sensors_in_zone = MTServer.sensors_per_zone * MTServer.gateways_per_zone
