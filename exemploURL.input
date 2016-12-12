@@ -1,0 +1,4 @@
+uuId = sensor_id
+            sensor_id = sensor_id[-2:]
+
+http://localhost:8081/sensor/?uuId=b9d17987-de24-0001-0006-000000000033

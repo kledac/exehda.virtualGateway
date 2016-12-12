@@ -47,6 +47,9 @@ class MTServer(bottle.ServerAdapter):
             sensor_id = request.query["uuId"]
             if sensor_id =="":
                 return
+
+            uuId = sensor_id
+            sensor_id = sensor_id[-2:]
             
             zoneNumber = str(MTServer.zoneDB(int(sensor_id)))
             conn = sqlite3.connect('dbs/zone'+zoneNumber+'.sqlite', detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
